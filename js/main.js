@@ -46,7 +46,7 @@
 
         this.angularVelocity = angularVelocity.clone();
         this.velocity        = 0;
-        this.limit           = 5;
+        this.limit           = 30;
         this.number          = number;
         this.gravity         = 9.8 / 2;
 
