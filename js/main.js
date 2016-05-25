@@ -7,6 +7,31 @@
 
     var boxId = 0;
 
+    var Timer = (function () {
+
+        var time = 0;
+        var deltaTime = 0;
+        var previousTime = Date.now();
+
+        return {
+            update: function () {
+                var now = Date.now();
+                deltaTime = now - previousTime;
+                time += deltaTime;
+                previousTime = now;
+            },
+
+            get time() {
+                return time;
+            },
+
+            get deltaTime() {
+                return deltaTime;
+            }
+        };
+    }());
+
+
     /**
      * 生成される落下ボックス
      *
@@ -36,6 +61,14 @@
         this.rotation.x += this.angularVelocity.x;
         this.rotation.y += this.angularVelocity.y;
         this.rotation.z += this.angularVelocity.z;
+
+        this.position.y -= 0.01;
+
+        if (this.position.y <= -2) {
+            this.dispatchEvent({
+                type: 'onBottom'
+            });
+        }
     };
 
 
@@ -47,11 +80,22 @@
     function Emitter(scene) {
         this.pool = [];
         this.scene = scene;
+
+        this.time = 0;
+        this.interval = 5000;
+        this.nextTime = this.interval;
     }
     Emitter.prototype = {
         constructor: Emitter,
 
         update: function () {
+            this.time += Timer.deltaTime;
+
+            if (this.time >= this.nextTime) {
+                this.emit();
+                this.nextTime = this.time + this.interval;
+            }
+
             this.pool.forEach(function (box, i) {
                 box.update();
             });
@@ -61,6 +105,12 @@
             var position = this.randomPosition();
             var velocity = this.randomVelocity();
             var box = new Box(position, velocity);
+
+            var scope = this;
+            box.addEventListener('onBottom', function (evt) {
+                scope.remove(box);
+            });
+
             this.add(box);
         },
 
@@ -80,12 +130,14 @@
 
             var index = this.pool.indexOf(obj);
             this.pool.splice(index, 1);
+
+            this.scene.remove(obj);
         },
 
         randomPosition: function () {
-            var x = Math.random() * 1;
-            var y = Math.random() * 1;
-            var z = Math.random() * 1;
+            var x = Math.random() * 3;
+            var y = Math.random() * 3;
+            var z = Math.random() * 3;
             return new THREE.Vector3(x, y, z);
         },
 
@@ -100,7 +152,7 @@
     function setupCamera() {
         player = new THREE.Object3D();
         player.name = 'player';
-        player.position.set(0, 1.4, 3);
+        player.position.set(0, 1.4, 5);
 
         camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
         player.add(camera);
@@ -157,6 +209,8 @@
 
     function update() {
         // renderer.render(scene, camera);
+        Timer.update();
+
         controls.update();
         emitter.update();
         effect.render(scene, camera);
