@@ -51,6 +51,7 @@
 
         this.name = 'Box-' + (boxId++);
         this.angularVelocity = angularVelocity;
+        this.velocity = 0;
         this.position.copy(position);
 
         this.add(mesh);
@@ -62,7 +63,9 @@
         this.rotation.y += this.angularVelocity.y;
         this.rotation.z += this.angularVelocity.z;
 
-        this.position.y -= 0.01;
+        var t = Timer.deltaTime / 1000;
+        this.velocity += 9.8 * t * t;
+        this.position.y -= this.velocity;
 
         if (this.position.y <= -2) {
             this.dispatchEvent({
@@ -136,7 +139,7 @@
 
         randomPosition: function () {
             var x = Math.random() * 3;
-            var y = Math.random() * 3;
+            var y = Math.random() * 10;
             var z = Math.random() * 3;
             return new THREE.Vector3(x, y, z);
         },
@@ -152,7 +155,7 @@
     function setupCamera() {
         player = new THREE.Object3D();
         player.name = 'player';
-        player.position.set(0, 1.4, 5);
+        player.position.set(0, 1.4, 10);
 
         camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
         player.add(camera);
