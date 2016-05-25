@@ -48,6 +48,7 @@
         this.velocity        = 0;
         this.limit           = 5;
         this.number          = number;
+        this.gravity         = 9.8 / 2;
 
         this.position.copy(position);
 
@@ -155,8 +156,7 @@
         
         // back
         var mat6 = new THREE.MeshLambertMaterial({
-            color: 0xff33dd,
-            map: texture
+            color: 0xff33dd
         });
 
         return new THREE.MeshFaceMaterial([
@@ -173,7 +173,7 @@
         this.rotation.z += this.angularVelocity.z;
 
         var t = Timer.deltaTime / 1000;
-        this.velocity += 9.8 * t * t;
+        this.velocity += (this.gravity * t * t);
         this.position.y -= this.velocity;
 
         if (this.position.y <= -this.limit) {
@@ -302,7 +302,6 @@
 
     function setupObjects() {
         emitter = new Emitter(scene);
-        emitter.emit();
 
         var texture = new THREE.TextureLoader().load('img/background.jpg');
         texture.wrapS = THREE.RepeatWrapping;
