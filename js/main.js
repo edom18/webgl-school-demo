@@ -3,9 +3,8 @@
     'use strict';
 
     var camera, scene, renderer, light, ambientLight,
-        player, effect, controls;
+        player, effect, controls, emitter;
 
-    var box;
     var boxId = 0;
 
     /**
@@ -37,6 +36,65 @@
         this.rotation.x += this.angularVelocity.x;
         this.rotation.y += this.angularVelocity.y;
         this.rotation.z += this.angularVelocity.z;
+    };
+
+
+    /**
+     * エミッター
+     *
+     * @param {THREE.Scene} scene
+     */
+    function Emitter(scene) {
+        this.pool = [];
+        this.scene = scene;
+    }
+    Emitter.prototype = {
+        constructor: Emitter,
+
+        update: function () {
+            this.pool.forEach(function (box, i) {
+                box.update();
+            });
+        },
+
+        emit: function () {
+            var position = this.randomPosition();
+            var velocity = this.randomVelocity();
+            var box = new Box(position, velocity);
+            this.add(box);
+        },
+
+        add: function (obj) {
+            if (~this.pool.indexOf(obj)) {
+                return;
+            }
+
+            this.scene.add(obj);
+            this.pool.push(obj);
+        },
+
+        remove: function (obj) {
+            if (!~this.pool.indexOf(obj)) {
+                return;
+            }
+
+            var index = this.pool.indexOf(obj);
+            this.pool.splice(index, 1);
+        },
+
+        randomPosition: function () {
+            var x = Math.random() * 1;
+            var y = Math.random() * 1;
+            var z = Math.random() * 1;
+            return new THREE.Vector3(x, y, z);
+        },
+
+        randomVelocity: function () {
+            var x = Math.random() * 0.01;
+            var y = Math.random() * 0.01;
+            var z = Math.random() * 0.01;
+            return new THREE.Vector3(x, y, z);
+        }
     };
 
     function setupCamera() {
@@ -76,9 +134,12 @@
     }
 
     function setupObjects() {
-        box = new Box(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.001, 0.001, 0.02));
+        emitter = new Emitter(scene);
+        emitter.emit();
 
-        scene.add(box);
+        // box = new Box(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.001, 0.001, 0.02));
+
+        // scene.add(box);
 
         var texture = new THREE.TextureLoader().load('img/background.jpg');
         texture.wrapS = THREE.RepeatWrapping;
@@ -97,7 +158,7 @@
     function update() {
         // renderer.render(scene, camera);
         controls.update();
-        box.update();
+        emitter.update();
         effect.render(scene, camera);
     }
 
