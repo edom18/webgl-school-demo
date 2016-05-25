@@ -38,26 +38,135 @@
      * @param {THREE.Vector3} position 生成位置
      * @param {THREE.Vector3} angularvelocity 回転速度
      */
-    function Box(position, angularVelocity) {
+    function Box(position, angularVelocity, number) {
 
         THREE.Object3D.call(this);
 
-        var geo = new THREE.BoxGeometry(1, 1, 1);
-        var mat = new THREE.MeshLambertMaterial({
-            color: 0xff3333
-        });
-
-        var mesh = new THREE.Mesh(geo, mat);
-
         this.name = 'Box-' + (boxId++);
-        this.angularVelocity = angularVelocity;
-        this.velocity = 0;
+
+        this.angularVelocity = angularVelocity.clone();
+        this.velocity        = 0;
+        this.limit           = 5;
+        this.number          = number;
+
         this.position.copy(position);
 
+        var mesh = this.makeMesh();
         this.add(mesh);
     }
     Box.prototype = Object.create(THREE.Object3D.prototype);
     Box.prototype.constructor = Box;
+
+    /**
+     * メッシュを生成
+     */
+    Box.prototype.makeMesh = function () {
+
+        var geo = this.makeGeometry();
+        var mat = this.makeMaterial();
+
+        var mesh = new THREE.Mesh(geo, mat);
+
+        return mesh;
+    };
+
+    /**
+     * ジオメトリを生成
+     *
+     * @return {THREE.Geometry}
+     */
+    Box.prototype.makeGeometry = function () {
+
+        var geometry = new THREE.BoxGeometry(1, 1, 1);
+
+        var num = this.number - 1;
+        var col = num % 3;
+        var row = (num / 3) | 0;
+
+        var s = 1 / 3;
+        var t = 1 / 4;
+
+        var s0 = s * col;
+        var s1 = s * (col + 1);
+
+        var t0 = t * row;
+        var t1 = t * (row + 1);
+
+        geometry.faceVertexUvs[0][0] = [
+            // 1 3
+            // 2  
+            new THREE.Vector2(s0, t1),
+            new THREE.Vector2(s0, t0),
+            new THREE.Vector2(s1, t1),
+
+            // new THREE.Vector2(0, 1),
+            // new THREE.Vector2(0, 0),
+            // new THREE.Vector2(1, 1),
+        ];
+
+        geometry.faceVertexUvs[0][1] = [
+            // 3 2
+            // 1  
+            new THREE.Vector2(s0, t0),
+            new THREE.Vector2(s1, t0),
+            new THREE.Vector2(s1, t1),
+
+            // new THREE.Vector2(0, 0),
+            // new THREE.Vector2(1, 0),
+            // new THREE.Vector2(1, 1),
+        ];
+
+        return geometry;
+    };
+
+    /**
+     * マテリアルを生成
+     *
+     * @return {THREE.Material}
+     */
+    Box.prototype.makeMaterial = function () {
+        var texture = new THREE.TextureLoader().load('img/numbers.png');
+
+        // right
+        var mat1 = new THREE.MeshLambertMaterial({
+            color: 0xff0000,
+            map: texture
+        });
+
+        // left
+        var mat2 = new THREE.MeshLambertMaterial({
+            color: 0x00ff00
+        });
+
+        // top
+        var mat3 = new THREE.MeshLambertMaterial({
+            color: 0x0000ff
+        });
+
+        // bottom
+        var mat4 = new THREE.MeshLambertMaterial({
+            color: 0xffffff
+        });
+
+        // front
+        var mat5 = new THREE.MeshLambertMaterial({
+            color: 0xffee99
+        });
+        
+        // back
+        var mat6 = new THREE.MeshLambertMaterial({
+            color: 0xff33dd,
+            map: texture
+        });
+
+        return new THREE.MeshFaceMaterial([
+            mat1, mat2, mat3, mat4, mat5, mat6
+        ]);
+    };
+
+    /**
+     * Update
+     */
     Box.prototype.update = function () {
         this.rotation.x += this.angularVelocity.x;
         this.rotation.y += this.angularVelocity.y;
@@ -67,7 +176,7 @@
         this.velocity += 9.8 * t * t;
         this.position.y -= this.velocity;
 
-        if (this.position.y <= -2) {
+        if (this.position.y <= -this.limit) {
             this.dispatchEvent({
                 type: 'onBottom'
             });
@@ -107,11 +216,14 @@
         emit: function () {
             var position = this.randomPosition();
             var velocity = this.randomVelocity();
-            var box = new Box(position, velocity);
+            var number   = (Math.random() * 10) | 0;
+
+            var box = new Box(position, velocity, number);
 
             var scope = this;
             box.addEventListener('onBottom', function (evt) {
                 scope.remove(box);
+                box = null;
             });
 
             this.add(box);
@@ -138,16 +250,16 @@
         },
 
         randomPosition: function () {
-            var x = Math.random() * 3;
-            var y = Math.random() * 10;
+            var x = (Math.random() * 2 - 1) * 3;
+            var y = Math.random() * 5 + 5;
             var z = Math.random() * 3;
             return new THREE.Vector3(x, y, z);
         },
 
         randomVelocity: function () {
-            var x = Math.random() * 0.01;
-            var y = Math.random() * 0.01;
-            var z = Math.random() * 0.01;
+            var x = Math.random() * 0.1;
+            var y = Math.random() * 0.1;
+            var z = Math.random() * 0.1;
             return new THREE.Vector3(x, y, z);
         }
     };
@@ -191,10 +303,6 @@
     function setupObjects() {
         emitter = new Emitter(scene);
         emitter.emit();
-
-        // box = new Box(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.001, 0.001, 0.02));
-
-        // scene.add(box);
 
         var texture = new THREE.TextureLoader().load('img/background.jpg');
         texture.wrapS = THREE.RepeatWrapping;
