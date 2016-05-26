@@ -93,25 +93,24 @@
         var t0 = t * row;
         var t1 = t * (row + 1);
 
+        // UVを変更して該当の数字を表示させる
         geometry.faceVertexUvs[0][0] = [
-            // 1 3
-            // 2  
             new THREE.Vector2(s0, t1),
             new THREE.Vector2(s0, t0),
             new THREE.Vector2(s1, t1),
 
+            // 元のUV
             // new THREE.Vector2(0, 1),
             // new THREE.Vector2(0, 0),
             // new THREE.Vector2(1, 1),
         ];
 
         geometry.faceVertexUvs[0][1] = [
-            // 3 2
-            // 1  
             new THREE.Vector2(s0, t0),
             new THREE.Vector2(s1, t0),
             new THREE.Vector2(s1, t1),
 
+            // 元のUV
             // new THREE.Vector2(0, 0),
             // new THREE.Vector2(1, 0),
             // new THREE.Vector2(1, 1),
@@ -136,12 +135,12 @@
 
         // left
         var mat2 = new THREE.MeshLambertMaterial({
-            color: 0x00ff00
+            color: 0xffffff
         });
 
         // top
         var mat3 = new THREE.MeshLambertMaterial({
-            color: 0x0000ff
+            color: 0xffffff
         });
 
         // bottom
@@ -151,12 +150,12 @@
 
         // front
         var mat5 = new THREE.MeshLambertMaterial({
-            color: 0xffee99
+            color: 0xffffff
         });
         
         // back
         var mat6 = new THREE.MeshLambertMaterial({
-            color: 0xff33dd
+            color: 0xffffff
         });
 
         return new THREE.MeshFaceMaterial([
@@ -216,7 +215,7 @@
         emit: function () {
             var position = this.randomPosition();
             var velocity = this.randomVelocity();
-            var number   = (Math.random() * 10) | 0;
+            var number   = ((Math.random() * 9) | 0) + 1;
 
             var box = new Box(position, velocity, number);
 
