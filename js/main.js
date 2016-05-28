@@ -288,7 +288,9 @@
         effect = new THREE.VREffect(renderer);
 
         var isPresented = false;
-        document.addEventListener('touchstart', function () {
+        var isMobile = 'ontouchstart' in window;
+        var eventName = isMobile ? 'touchstart' : 'click';
+        document.addEventListener(eventName, function () {
             if (isPresented) {
                 return;
             }
