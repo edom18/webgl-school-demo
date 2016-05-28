@@ -286,9 +286,15 @@
         renderer.setClearColor(0x000000);
 
         effect = new THREE.VREffect(renderer);
-        // TODO
+
+        var isPresented = false;
         document.addEventListener('touchstart', function () {
-            renderer.setPixelRatio(window.devicePixelRatio);
+            if (isPresented) {
+                return;
+            }
+
+            isPresented = true;
+
             effect.setSize(window.innerWidth, window.innerHeight);
             effect.requestPresent();
         }, false);
